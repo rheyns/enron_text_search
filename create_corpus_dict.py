@@ -22,7 +22,7 @@ def tp(trie):
         if key != _end:
             tp(trie[key])
 
-def trie_write(trie, f, parent_pos=0):
+def trie_write(trie, f, parent_pos=-1):
     for key in sorted(trie):
         if key is _end:
             f.write(key + ': ' + str(parent_pos) + ' : ' + str(trie[key]) + "\n")
@@ -37,7 +37,7 @@ def clean(str):
 
 def make_worddict(mappedfile):
     worddict = defaultdict(list)
-    idx = mappedfile.find(" ") + 1
+    idx = 0
     
     while idx <= len(mappedfile):
         newidx = mappedfile.find(" ",idx)
@@ -48,20 +48,25 @@ def make_worddict(mappedfile):
         idx = newidx + 1
     return worddict
 
-f = open("beowulf.txt", "r+b")
-mappedfile = mmap(f.fileno(),0)
-worddict = make_worddict(mappedfile)
+def run():
+    f = open("beowulf.txt", "r+b")
+    mappedfile = mmap(f.fileno(),0)
+    worddict = make_worddict(mappedfile)
+    
+    keys = sorted(worddict)
+    trie = make_trie(keys)
+    
+    with open("corpus_dict.txt", "w") as of:
+        for key in keys:
+            t = trie
+            for letter in key:
+                t = t[letter]
+            t[_end] = of.tell()
+            of.write(key + ":" + worddict[key].__repr__() + "\n")
+    
+    with open("offsetdict.txt", "w") as of:
+        trie_write(trie, of)
 
-keys = sorted(worddict)
-trie = make_trie(keys)
 
-with open("corpus_dict.txt", "w") as of:
-    for key in keys:
-        t = trie
-        for letter in key:
-            t = t[letter]
-        t[_end] = of.tell()
-        of.write(key + ":" + worddict[key].__repr__() + "\n")
-
-with open("offsetdict.txt", "w") as of:
-    trie_write(trie, of)
+if __name__ == "__main__":
+    run()
